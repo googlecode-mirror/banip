@@ -7,6 +7,21 @@ Client -> Proxy Server -> Service Server -> Proxy Server -> Client.
 Client -->Service Server  || Support GET POST(Include File Upload)
 Service Server --> Client || Support Cookie Session Header etc..
 
+#php proxy service程序
+
+可以将浏览器请求发送给后端服务器，并返回，同时处理get post file upload和session cookie.
+
+将client信息发送给proxy server 处理后发送给service server
+  * 支持get post file upload
+  * 兼容[]方式<input name=test[]>
+  * 兼容cookie发送(support session)
+
+将service server发送给proxy server组装给client
+  * 支持service server发送的Header指令
+  * 当header中是loction跳转的时候，自动exit
+  * 对proxy server的header进行过滤，通过过滤的，发送给前段。
+
+
 用法
 $pProxyS=new phpProxyService();
 $serviceData=$pProxyS->proxyService('http://www.bbc.com');
@@ -31,13 +46,13 @@ class phpProxyService {
 		}
 		if(isset($_SERVER['CONTENT_TYPE'])) $toClient[] =  'Content-Type: '.$_SERVER['CONTENT_TYPE'];
 		$toClient[]='Connection: close'; //强制关闭。
-/*		$c=array();
+		/*
+		$c=array();
 		foreach($_COOKIE as $cKey => $cVal) {
-			if(substr($cKey,0,3)!='__u') //这些cookie是页面级别的，不推送 TODO 这个部分可以和下边的那个TODO连上。
-				$c[$cKey]=$cVal;
+			$_COOKIE[$cKey]=str_replace("kaixin001.com","onsaleall.com",$cVal);
 		}
 		if($c) $toClient[]='Cookie: '.http_build_query($c,'','; ');
-*/		
+		*/
 		return implode("\r\n",$toClient);
 	}
 	/*
@@ -145,7 +160,6 @@ class phpProxyService {
 		else
 			$contents = file_get_contents($serviceHost.$URI,false,$context);
 		if($contents === false)
-			 print_r($opts);
 	/*
 	处理Service->Proxy->User的请求
 	*/
